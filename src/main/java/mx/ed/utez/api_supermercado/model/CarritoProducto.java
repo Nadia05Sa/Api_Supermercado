@@ -21,6 +21,7 @@ public class CarritoProducto {
     @Column(name = "cantidad", nullable = false)
     private int cantidad;
 
+    // Getters y Setters
     public Long getId() {
         return id;
     }

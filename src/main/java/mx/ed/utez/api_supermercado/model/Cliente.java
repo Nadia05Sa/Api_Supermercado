@@ -17,7 +17,7 @@ public class Cliente {
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarritoProducto> carrito;
 
-
+    // Getters y Setters
     public Long getId() {
         return id;
     }
