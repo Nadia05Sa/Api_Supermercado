@@ -1,8 +1,8 @@
 package mx.ed.utez.api_supermercado.response;
 
-public class ProductoResponseRest extends ProductoResponse {
+public class ProductoResponseRest extends ResponseRest {
 
-    private ProductoResponse productoResponse = new ProductoResponseRest();
+    private ProductoResponse productoResponse = new ProductoResponse();
 
     public ProductoResponse getProductoResponse() {
         return productoResponse;

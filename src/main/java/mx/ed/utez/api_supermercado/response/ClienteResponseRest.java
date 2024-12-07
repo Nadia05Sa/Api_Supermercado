@@ -1,6 +1,6 @@
 package mx.ed.utez.api_supermercado.response;
 
-public class ClienteResponseRest extends ClienteResponse {
+public class ClienteResponseRest extends ResponseRest {
 
     private ClienteResponse clienteResponse = new ClienteResponse();
 
@@ -11,3 +11,6 @@ public class ClienteResponseRest extends ClienteResponse {
         this.clienteResponse = clienteResponse;
     }
 }
+
+
+
