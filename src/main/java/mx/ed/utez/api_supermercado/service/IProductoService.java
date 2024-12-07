@@ -5,6 +5,6 @@ import mx.ed.utez.api_supermercado.response.ProductoResponseRest;
 import org.springframework.http.ResponseEntity;
 
 public interface IProductoService {
-    public ResponseEntity<ProductoResponseRest> guardarProducto (Producto producto);
+    public  ResponseEntity<ProductoResponseRest> guardarProducto(Producto producto);
 
 }
