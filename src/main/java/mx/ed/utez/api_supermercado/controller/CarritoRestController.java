@@ -1,6 +1,9 @@
 package mx.ed.utez.api_supermercado.controller;
 
 import mx.ed.utez.api_supermercado.model.CarritoProducto;
+import mx.ed.utez.api_supermercado.response.CarritoResponseRest;
+import mx.ed.utez.api_supermercado.service.ICarritoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,40 +15,33 @@ import java.util.Stack;
 @RequestMapping("/carrito")
 public class CarritoRestController {
 
-    private List<CarritoProducto> carrito = new ArrayList<>();
-    private Stack<CarritoProducto> historialEliminados = new Stack<>();
+
+    @Autowired
+    private ICarritoService carritoService;
+
 
     @PostMapping("/agregar")
-    public ResponseEntity<String> agregarProducto(@RequestBody CarritoProducto producto) {
-        carrito.add(producto);
-        return ResponseEntity.ok("Producto agregado al carrito.");
+    public ResponseEntity<CarritoResponseRest> agregarProducto(@RequestBody CarritoProducto request) {
+        ResponseEntity<CarritoResponseRest> response = carritoService.agregarProducto(request);
+        return response;
     }
+
 
     @GetMapping("/{clienteId}")
-    public ResponseEntity<List<CarritoProducto>> listarCarrito(@PathVariable Long clienteId) {
-        // Filtrar los productos por clienteId
-        List<CarritoProducto> productosCliente = carrito.stream()
-                .filter(producto -> producto.getCliente().getId().equals(clienteId))
-                .toList();
-        return ResponseEntity.ok(productosCliente);
+
+    public ResponseEntity<CarritoResponseRest> listarCarrito(@PathVariable Long clienteId){
+        ResponseEntity<CarritoResponseRest> response = carritoService.listarCarrito(clienteId);
+        return response;
     }
 
-    @PostMapping("/eliminar")
-    public ResponseEntity<String> eliminarProducto(@RequestBody CarritoProducto producto) {
-        if (carrito.remove(producto)) {
-            historialEliminados.push(producto);
-            return ResponseEntity.ok("Producto eliminado del carrito.");
-        }
-        return ResponseEntity.badRequest().body("Producto no encontrado en el carrito.");
-    }
+//    @PostMapping("/eliminar")
+//    public ResponseEntity<CarritoResponseRest> eliminarProducto(@RequestBody CarritoProducto request) {
+//        return carritoService.eliminarProducto(request);
+//    }
 
-    @PostMapping("/deshacer")
-    public ResponseEntity<String> deshacerEliminacion() {
-        if (!historialEliminados.isEmpty()) {
-            CarritoProducto ultimoEliminado = historialEliminados.pop();
-            carrito.add(ultimoEliminado);
-            return ResponseEntity.ok("Última eliminación deshecha.");
-        }
-        return ResponseEntity.badRequest().body("No hay eliminaciones para deshacer.");
-    }
+//    @PostMapping("/deshacer")
+//    public ResponseEntity<CarritoResponseRest> deshacerEliminacion() {
+//        return carritoService.deshacerEliminacion();
+//    }
+
 }
