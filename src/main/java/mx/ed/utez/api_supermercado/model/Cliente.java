@@ -1,5 +1,6 @@
 package mx.ed.utez.api_supermercado.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class Cliente {
     private String nombre;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<CarritoProducto> carrito;
 
     // Getters y Setters

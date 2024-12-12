@@ -15,33 +15,26 @@ import java.util.Stack;
 @RequestMapping("/carrito")
 public class CarritoRestController {
 
-
     @Autowired
     private ICarritoService carritoService;
 
-
     @PostMapping("/agregar")
     public ResponseEntity<CarritoResponseRest> agregarProducto(@RequestBody CarritoProducto request) {
-        ResponseEntity<CarritoResponseRest> response = carritoService.agregarProducto(request);
-        return response;
+        return carritoService.agregarProducto(request);
     }
-
 
     @GetMapping("/{clienteId}")
-
-    public ResponseEntity<CarritoResponseRest> listarCarrito(@PathVariable Long clienteId){
-        ResponseEntity<CarritoResponseRest> response = carritoService.listarCarrito(clienteId);
-        return response;
+    public ResponseEntity<CarritoResponseRest> listarCarrito(@PathVariable Long clienteId) {
+        return carritoService.listarCarrito(clienteId);
     }
 
-//    @PostMapping("/eliminar")
-//    public ResponseEntity<CarritoResponseRest> eliminarProducto(@RequestBody CarritoProducto request) {
-//        return carritoService.eliminarProducto(request);
-//    }
+    @DeleteMapping("/eliminar/{carritoProductoId}")
+    public ResponseEntity<CarritoResponseRest> eliminarProducto(@PathVariable Long carritoProductoId) {
+        return carritoService.eliminarProducto(carritoProductoId);
+    }
 
-//    @PostMapping("/deshacer")
-//    public ResponseEntity<CarritoResponseRest> deshacerEliminacion() {
-//        return carritoService.deshacerEliminacion();
-//    }
-
+    @PostMapping("/deshacer")
+    public ResponseEntity<CarritoResponseRest> deshacerEliminacion() {
+        return carritoService.deshacerEliminacion();
+    }
 }

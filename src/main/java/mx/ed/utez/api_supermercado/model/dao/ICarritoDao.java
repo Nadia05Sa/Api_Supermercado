@@ -21,5 +21,4 @@ public interface ICarritoDao extends CrudRepository<CarritoProducto, Long> {
     List<CarritoProducto> findProductosByClienteId(@Param("cliente_id") Long cliente_id);
 
     Optional<CarritoProducto> findByClienteAndProducto(Cliente cliente, Producto producto);
-
 }
