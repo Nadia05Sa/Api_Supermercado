@@ -18,6 +18,7 @@ public class CajaRestController {
         return ResponseEntity.ok("Cliente agregado a la fila.");
     }
 
+    //algo anda mal
     @GetMapping("/atender")
     public ResponseEntity<String> atenderCliente() {
         String cliente = filaClientes.poll();
