@@ -116,6 +116,7 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
     @Override
     @Transactional
     public ResponseEntity<CarritoResponseRest> eliminarProducto(Long carritoProductoId) {
