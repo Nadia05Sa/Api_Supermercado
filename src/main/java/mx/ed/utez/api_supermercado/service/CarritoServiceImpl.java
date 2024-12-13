@@ -146,20 +146,34 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
     public ResponseEntity<CarritoResponseRest> deshacerEliminacion() {
         CarritoResponseRest response = new CarritoResponseRest();
         try {
+            // Verificar si hay productos en el historial
             if (!historialEliminados.isEmpty()) {
-                CarritoProducto producto = historialEliminados.pop();
-                carritoDao.save(producto);
+                // Recuperar el último producto eliminado del historial
+                CarritoProducto carrito =new CarritoProducto();
+                CarritoProducto restaurado=new CarritoProducto();
+                //CarritoProducto productoRestaurado = historialEliminados.pop();
+                carrito = historialEliminados.pop();
 
-                response.setMetada("Respuesta OK", "00", "Eliminación deshecha correctamente");
+                restaurado.setCantidad(carrito.getCantidad());
+                restaurado.setProducto(carrito.getProducto());
+                restaurado.setCliente(carrito.getCliente());
+
+                // Restaurar el producto en el carrito (agregarlo de nuevo)
+                carritoDao.save(restaurado);
+
+                response.setMetada("Respuesta OK", "00", "Producto restaurado en el carrito");
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
-                response.setMetada("Error", "-1", "No hay eliminaciones para deshacer");
-                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                response.setMetada("Error", "-1", "No hay productos eliminados para deshacer");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            log.error("Error al deshacer eliminación: ", e);
-            response.setMetada("Error", "-1", "Error interno");
+            log.error("Error al deshacer eliminación de producto: ", e);
+            response.setMetada("Error", "-1", "Error al deshacer eliminación");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
 }

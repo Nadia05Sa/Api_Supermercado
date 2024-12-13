@@ -13,6 +13,8 @@ public class CarritoProducto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cliente_id", nullable = false)
     @JsonBackReference
@@ -57,4 +59,8 @@ public class CarritoProducto {
     public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
     }
+
+
+
+
 }
