@@ -30,7 +30,7 @@ public class CajaRestController {
 
     private final Queue<Cliente> filaClientes = new LinkedList<>();
 
-    //metodo para agregar a un cliente a la cola
+    //metodo para agregar a un cliente a la fila
     @PostMapping("/agregar")
     public ResponseEntity<?> agregarCliente(@RequestBody Map<String, Object> datos) {
         try {
@@ -61,12 +61,12 @@ public class CajaRestController {
             clienteDao.save(cliente);
             carritoDao.save(carrito);
 
-            // Validar que el cliente no esté ya en la cola
+            // Validar que el cliente no esté ya en la fila
             if (!filaClientes.contains(cliente)) {
                 filaClientes.offer(cliente);
-                System.out.println("Cliente agregado a la cola: " + cliente.getId());
+                System.out.println("Cliente agregado a la fila: " + cliente.getId());
             } else {
-                System.out.println("El cliente ya está en la cola: " + cliente.getId());
+                System.out.println("El cliente ya está en la fila: " + cliente.getId());
             }
 
             return ResponseEntity.ok(cliente);
@@ -75,7 +75,7 @@ public class CajaRestController {
         }
     }
 
-    //Metodo para atender a un cliente en la cola
+    //Metodo para atender a un cliente en la fila
     @GetMapping("/atender")
     public ResponseEntity<?> atenderCliente() {
         Cliente cliente = filaClientes.poll();
@@ -85,6 +85,12 @@ public class CajaRestController {
         }
         System.out.println("Cliente atendido: " + cliente.getId());
         return ResponseEntity.ok(cliente);
+    }
+
+    //Metodo para ver la fila de clientes
+    @GetMapping("/obtenerFila")
+    public ResponseEntity<Queue<Cliente>> obtenerFila() {
+        return ResponseEntity.ok(filaClientes);
     }
 
 
