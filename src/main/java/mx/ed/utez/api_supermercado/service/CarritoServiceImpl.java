@@ -7,12 +7,11 @@ import mx.ed.utez.api_supermercado.model.Producto;
 import mx.ed.utez.api_supermercado.model.dao.ICarritoDao;
 import mx.ed.utez.api_supermercado.model.dao.IClienteDao;
 import mx.ed.utez.api_supermercado.model.dao.IProductoDao;
-import mx.ed.utez.api_supermercado.response.CarritoResponse;
+import mx.ed.utez.api_supermercado.model.request.EliminarProductoRequest;
 import mx.ed.utez.api_supermercado.response.CarritoResponseRest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -116,27 +115,47 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    @Override
+
+
     @Transactional
-    public ResponseEntity<CarritoResponseRest> eliminarProducto(Long carritoProductoId) {
+    @Override
+    public ResponseEntity<CarritoResponseRest> eliminarProducto(EliminarProductoRequest request) {
         CarritoResponseRest response = new CarritoResponseRest();
         try {
-            Optional<CarritoProducto> productoOpt = carritoDao.findById(carritoProductoId);
+            // Buscar el producto en el carrito utilizando los datos del request
+            Optional<CarritoProducto> productoOpt = carritoDao.findByClienteIdAndProductoId(
+                    request.getClienteId(), // Usamos clienteId del request
+                    request.getProductoId() // Usamos productoId del request
+            );
 
             if (productoOpt.isPresent()) {
-                CarritoProducto producto = productoOpt.get();
-                carritoDao.delete(producto);
-                historialEliminados.push(producto);
+                CarritoProducto productoExistente = productoOpt.get();
 
-                response.setMetada("Respuesta OK", "00", "Producto eliminado y guardado en historial");
+                // Verifica si la cantidad solicitada para eliminar es menor que la cantidad disponible
+                if (productoExistente.getCantidad() > request.getCantidad()) {
+                    // Reduce la cantidad del producto
+                    productoExistente.setCantidad(productoExistente.getCantidad() - request.getCantidad());
+                    carritoDao.save(productoExistente); // Guarda los cambios
+                } else {
+                    // Si la cantidad es suficiente o mayor, elimina el producto del carrito
+                    carritoDao.delete(productoExistente);
+                }
+
+                // Agrega al historial de eliminados
+                historialEliminados.push(productoExistente);
+
+                // Respuesta de éxito
+                response.setMetada("Respuesta OK", "00", "Producto eliminado correctamente del carrito");
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
-                response.setMetada("Error", "-1", "Producto no encontrado");
+                // Si no se encuentra el producto en el carrito
+                response.setMetada("Error", "-1", "Producto no encontrado en el carrito");
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            log.error("Error al eliminar producto: ", e);
-            response.setMetada("Error", "-1", "Error al eliminar producto");
+            // Manejo de errores
+            log.error("Error al eliminar producto del carrito: ", e);
+            response.setMetada("Error", "-1", "Error interno al eliminar el producto");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -146,20 +165,39 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
     public ResponseEntity<CarritoResponseRest> deshacerEliminacion() {
         CarritoResponseRest response = new CarritoResponseRest();
         try {
+            // Verificar si hay productos en el historial
             if (!historialEliminados.isEmpty()) {
-                CarritoProducto producto = historialEliminados.pop();
-                carritoDao.save(producto);
+                // Recuperar el último producto eliminado del historial
+                CarritoProducto carritoRestaurado = historialEliminados.pop(); // Deshacer la eliminación
 
-                response.setMetada("Respuesta OK", "00", "Eliminación deshecha correctamente");
+                // Verificar si el producto ya existe en el carrito del cliente
+                Optional<CarritoProducto> productoExistenteOpt = carritoDao.findByClienteIdAndProductoId(
+                        carritoRestaurado.getCliente().getId(),
+                        carritoRestaurado.getProducto().getId()
+                );
+
+                if (productoExistenteOpt.isPresent()) {
+                    // Si ya existe, actualizar la cantidad (sumar la cantidad eliminada)
+                    CarritoProducto productoExistente = productoExistenteOpt.get();
+                    productoExistente.setCantidad(productoExistente.getCantidad() + carritoRestaurado.getCantidad());
+                    carritoDao.save(productoExistente); // Actualizar el producto en el carrito
+                } else {
+                    // Si no existe, agregar el producto restaurado al carrito
+                    carritoDao.save(carritoRestaurado);
+                }
+
+                response.setMetada("Respuesta OK", "00", "Producto restaurado correctamente al carrito");
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
-                response.setMetada("Error", "-1", "No hay eliminaciones para deshacer");
-                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                response.setMetada("Error", "-1", "No hay productos eliminados para deshacer");
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            log.error("Error al deshacer eliminación: ", e);
-            response.setMetada("Error", "-1", "Error interno");
+            log.error("Error al deshacer eliminación de producto: ", e);
+            response.setMetada("Error", "-1", "Error al deshacer eliminación");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 }

@@ -24,7 +24,6 @@ public class ClienteServiceImpl implements IClienteService {
     private IClienteDao clienteDao;
 
 
-
     @Override
     @Transactional
     public ResponseEntity<ClienteResponseRest> guardarCliente(Cliente cliente) {

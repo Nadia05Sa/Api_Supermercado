@@ -1,6 +1,8 @@
 package mx.ed.utez.api_supermercado.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -55,5 +57,4 @@ public class CarritoProducto {
     public void setCantidad(int cantidad) {
         this.cantidad = cantidad;
     }
-
 }
