@@ -1,6 +1,7 @@
 package mx.ed.utez.api_supermercado.service;
 
 import jakarta.transaction.Transactional;
+import mx.ed.utez.api_supermercado.Custom.CustomStack;
 import mx.ed.utez.api_supermercado.model.CarritoProducto;
 import mx.ed.utez.api_supermercado.model.Cliente;
 import mx.ed.utez.api_supermercado.model.Producto;
@@ -19,19 +20,21 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Stack;
 
 @Service
 public class CarritoServiceImpl implements ICarritoService {
-private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.class);
+
     @Autowired
     private ICarritoDao carritoDao;
+
     @Autowired
     private IClienteDao clienteDao;
-    @Autowired
-    private IProductoDao productoDao;// Acceso a la base de datos.
 
-    private Stack<CarritoProducto> historialEliminados = new Stack<>();
+    @Autowired
+    private IProductoDao productoDao; // Acceso a la base de datos.
+
+    private CustomStack<CarritoProducto> historialEliminados = new CustomStack<>();
 
     @Override
     @Transactional
@@ -80,7 +83,6 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
         }
     }
 
-
     @Override
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<CarritoResponseRest> listarCarrito(Long id) {
@@ -116,44 +118,35 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
     @Transactional
     @Override
     public ResponseEntity<CarritoResponseRest> eliminarProducto(EliminarProductoRequest request) {
         CarritoResponseRest response = new CarritoResponseRest();
         try {
-            // Buscar el producto en el carrito utilizando los datos del request
             Optional<CarritoProducto> productoOpt = carritoDao.findByClienteIdAndProductoId(
-                    request.getClienteId(), // Usamos clienteId del request
-                    request.getProductoId() // Usamos productoId del request
+                    request.getClienteId(),
+                    request.getProductoId()
             );
 
             if (productoOpt.isPresent()) {
                 CarritoProducto productoExistente = productoOpt.get();
 
-                // Verifica si la cantidad solicitada para eliminar es menor que la cantidad disponible
                 if (productoExistente.getCantidad() > request.getCantidad()) {
-                    // Reduce la cantidad del producto
                     productoExistente.setCantidad(productoExistente.getCantidad() - request.getCantidad());
-                    carritoDao.save(productoExistente); // Guarda los cambios
+                    carritoDao.save(productoExistente);
                 } else {
-                    // Si la cantidad es suficiente o mayor, elimina el producto del carrito
                     carritoDao.delete(productoExistente);
                 }
 
-                // Agrega al historial de eliminados
                 historialEliminados.push(productoExistente);
 
-                // Respuesta de éxito
                 response.setMetada("Respuesta OK", "00", "Producto eliminado correctamente del carrito");
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
-                // Si no se encuentra el producto en el carrito
                 response.setMetada("Error", "-1", "Producto no encontrado en el carrito");
                 return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
             }
         } catch (Exception e) {
-            // Manejo de errores
             log.error("Error al eliminar producto del carrito: ", e);
             response.setMetada("Error", "-1", "Error interno al eliminar el producto");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -165,24 +158,19 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
     public ResponseEntity<CarritoResponseRest> deshacerEliminacion() {
         CarritoResponseRest response = new CarritoResponseRest();
         try {
-            // Verificar si hay productos en el historial
             if (!historialEliminados.isEmpty()) {
-                // Recuperar el último producto eliminado del historial
-                CarritoProducto carritoRestaurado = historialEliminados.pop(); // Deshacer la eliminación
+                CarritoProducto carritoRestaurado = historialEliminados.pop();
 
-                // Verificar si el producto ya existe en el carrito del cliente
                 Optional<CarritoProducto> productoExistenteOpt = carritoDao.findByClienteIdAndProductoId(
                         carritoRestaurado.getCliente().getId(),
                         carritoRestaurado.getProducto().getId()
                 );
 
                 if (productoExistenteOpt.isPresent()) {
-                    // Si ya existe, actualizar la cantidad (sumar la cantidad eliminada)
                     CarritoProducto productoExistente = productoExistenteOpt.get();
                     productoExistente.setCantidad(productoExistente.getCantidad() + carritoRestaurado.getCantidad());
-                    carritoDao.save(productoExistente); // Actualizar el producto en el carrito
+                    carritoDao.save(productoExistente);
                 } else {
-                    // Si no existe, agregar el producto restaurado al carrito
                     carritoDao.save(carritoRestaurado);
                 }
 
@@ -198,6 +186,4 @@ private static final Logger log = LoggerFactory.getLogger(CarritoServiceImpl.cla
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }

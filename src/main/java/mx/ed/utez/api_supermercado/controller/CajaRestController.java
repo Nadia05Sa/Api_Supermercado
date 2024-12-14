@@ -1,5 +1,6 @@
 package mx.ed.utez.api_supermercado.controller;
 
+import mx.ed.utez.api_supermercado.Custom.CustomQueue;
 import mx.ed.utez.api_supermercado.model.CarritoProducto;
 import mx.ed.utez.api_supermercado.model.Cliente;
 import mx.ed.utez.api_supermercado.model.dao.ICarritoDao;
@@ -28,9 +29,9 @@ public class CajaRestController {
     @Autowired
     private ICarritoService carritoService;
 
-    private final Queue<Cliente> filaClientes = new LinkedList<>();
+    private final CustomQueue<Cliente> filaClientes = new CustomQueue<>();
 
-    //metodo para agregar a un cliente a la fila
+    // Método para agregar a un cliente a la fila
     @PostMapping("/agregar")
     public ResponseEntity<?> agregarCliente(@RequestBody Map<String, Object> datos) {
         try {
@@ -62,8 +63,8 @@ public class CajaRestController {
             carritoDao.save(carrito);
 
             // Validar que el cliente no esté ya en la fila
-            if (!filaClientes.contains(cliente)) {
-                filaClientes.offer(cliente);
+            if (!filaClientes.getQueue().contains(cliente)) {
+                filaClientes.enqueue(cliente);
                 System.out.println("Cliente agregado a la fila: " + cliente.getId());
             } else {
                 System.out.println("El cliente ya está en la fila: " + cliente.getId());
@@ -75,23 +76,22 @@ public class CajaRestController {
         }
     }
 
-    //Metodo para atender a un cliente en la fila
+    // Método para atender a un cliente en la fila
     @GetMapping("/atender")
     public ResponseEntity<?> atenderCliente() {
-        Cliente cliente = filaClientes.poll();
-        if (cliente == null) {
+        try {
+            Cliente cliente = filaClientes.dequeue();
+            System.out.println("Cliente atendido: " + cliente.getId());
+            return ResponseEntity.ok(cliente);
+        } catch (IllegalStateException e) {
             System.out.println("No hay clientes en la fila para atender.");
             return ResponseEntity.noContent().build();
         }
-        System.out.println("Cliente atendido: " + cliente.getId());
-        return ResponseEntity.ok(cliente);
     }
 
-    //Metodo para ver la fila de clientes
+    // Método para ver la fila de clientes
     @GetMapping("/obtenerFila")
     public ResponseEntity<Queue<Cliente>> obtenerFila() {
-        return ResponseEntity.ok(filaClientes);
+        return ResponseEntity.ok(filaClientes.getQueue());
     }
-
-
 }
