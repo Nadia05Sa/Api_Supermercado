@@ -4,44 +4,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CustomStack<T> {
-    private List<T> stack;
 
-    public CustomStack() {
-        this.stack = new ArrayList<>();
-    }
 
-    public void push(T item) {
-        stack.add(item);
-    }
+//Este sera parecido al examen estudiar todo esto
 
-    public T pop() {
-        if (stack.isEmpty()) {
-            throw new IllegalStateException("Stack is empty");
+        int capacidad;
+        int tope;
+        T[] items;
+
+        // constru
+        @SuppressWarnings("unchecked")
+        public CustomStack(int capacidad){
+            this.capacidad=capacidad;
+            tope=-1;
+            this.items= (T[]) new Object[capacidad];
         }
-        return stack.remove(stack.size() - 1);
-    }
 
-    public T peek() {
-        if (stack.isEmpty()) {
-            throw new IllegalStateException("Stack is empty");
+        //aqui agrega
+        public void push(T item){
+            if(isFull()){
+                System.out.println("El stack ya esta lleno, no puedes agregar mas");
+                return;
+            }
+            items[++tope]=item;
         }
-        return stack.get(stack.size() - 1);
+
+        //este muestra y elimina
+        public T pop(){
+            if(isEmpty()){
+                System.out.println("El stack esta vacio");
+                return null;
+            }
+            return items[tope--];
+        }
+
+        public T peek(){
+            if(isEmpty()){
+                System.out.println("El stack esta vacio");
+                return null;
+            }
+            return items[tope];
+        }
+
+        //verifica si esta vacio
+        public boolean isEmpty(){
+            return (tope==-1);
+        }
+
+        //verifica si esta lleno
+        public boolean isFull(){
+            return tope==capacidad-1;
+        }
     }
 
-    public boolean isEmpty() {
-        return stack.isEmpty();
-    }
-
-    public int size() {
-        return stack.size();
-    }
-
-    // Getters and Setters
-    public List<T> getStack() {
-        return stack;
-    }
-
-    public void setStack(List<T> stack) {
-        this.stack = stack;
-    }
-}

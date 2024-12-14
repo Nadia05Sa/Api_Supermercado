@@ -34,7 +34,7 @@ public class CarritoServiceImpl implements ICarritoService {
     @Autowired
     private IProductoDao productoDao; // Acceso a la base de datos.
 
-    private CustomStack<CarritoProducto> historialEliminados = new CustomStack<>();
+    public CustomStack<CarritoProducto> historialEliminados = new CustomStack<>(100);
 
     @Override
     @Transactional
@@ -157,33 +157,51 @@ public class CarritoServiceImpl implements ICarritoService {
     @Transactional
     public ResponseEntity<CarritoResponseRest> deshacerEliminacion() {
         CarritoResponseRest response = new CarritoResponseRest();
+
+        // Verifica si el historial de eliminaciones está vacío
+        if (historialEliminados.isEmpty()) {
+            response.setMetada("Error", "-1", "No hay productos eliminados para deshacer");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
         try {
-            if (!historialEliminados.isEmpty()) {
-                CarritoProducto carritoRestaurado = historialEliminados.pop();
+            // Obtén el último elemento eliminado sin modificar el Stack aún
+            CarritoProducto carritoRestaurado = historialEliminados.peek();
 
-                Optional<CarritoProducto> productoExistenteOpt = carritoDao.findByClienteIdAndProductoId(
-                        carritoRestaurado.getCliente().getId(),
-                        carritoRestaurado.getProducto().getId()
-                );
+            // Busca si el producto ya existe en la tabla CarritoProducto para este cliente
+            Optional<CarritoProducto> productoExistenteOpt = carritoDao.findByClienteIdAndProductoId(
+                    carritoRestaurado.getCliente().getId(),
+                    carritoRestaurado.getProducto().getId()
+            );
 
-                if (productoExistenteOpt.isPresent()) {
-                    CarritoProducto productoExistente = productoExistenteOpt.get();
-                    productoExistente.setCantidad(productoExistente.getCantidad() + carritoRestaurado.getCantidad());
-                    carritoDao.save(productoExistente);
-                } else {
-                    carritoDao.save(carritoRestaurado);
-                }
-
-                response.setMetada("Respuesta OK", "00", "Producto restaurado correctamente al carrito");
-                return new ResponseEntity<>(response, HttpStatus.OK);
+            if (productoExistenteOpt.isPresent()) {
+                // Si existe, incrementa la cantidad
+                CarritoProducto productoExistente = productoExistenteOpt.get();
+                productoExistente.setCantidad(productoExistente.getCantidad() + carritoRestaurado.getCantidad());
+                carritoDao.save(productoExistente);
             } else {
-                response.setMetada("Error", "-1", "No hay productos eliminados para deshacer");
-                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+                // Si no existe, crea un nuevo carrito para el cliente
+                CarritoProducto nuevoCarritoProducto = new CarritoProducto();
+                nuevoCarritoProducto.setCliente(carritoRestaurado.getCliente());
+                nuevoCarritoProducto.setProducto(carritoRestaurado.getProducto());
+                nuevoCarritoProducto.setCantidad(carritoRestaurado.getCantidad());
+
+                // Guarda el producto restaurado en la tabla CarritoProducto
+                carritoDao.save(nuevoCarritoProducto);
             }
+
+            // Ahora que la operación fue exitosa, elimina del Stack
+            historialEliminados.pop();
+
+            response.setMetada("Respuesta OK", "00", "Producto restaurado correctamente al carrito");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
         } catch (Exception e) {
             log.error("Error al deshacer eliminación de producto: ", e);
             response.setMetada("Error", "-1", "Error al deshacer eliminación");
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 }
