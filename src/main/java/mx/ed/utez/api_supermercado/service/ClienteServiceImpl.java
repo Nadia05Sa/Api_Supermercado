@@ -23,6 +23,7 @@ public class ClienteServiceImpl implements IClienteService {
     @Autowired
     private IClienteDao clienteDao;
 
+
     @Override
     @Transactional
     public ResponseEntity<ClienteResponseRest> guardarCliente(Cliente cliente) {
