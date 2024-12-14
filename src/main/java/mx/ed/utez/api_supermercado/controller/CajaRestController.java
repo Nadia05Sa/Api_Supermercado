@@ -1,34 +1,34 @@
 package mx.ed.utez.api_supermercado.controller;
 
+import mx.ed.utez.api_supermercado.model.CarritoProducto;
+import mx.ed.utez.api_supermercado.model.Cliente;
+import mx.ed.utez.api_supermercado.model.dao.ICarritoDao;
+import mx.ed.utez.api_supermercado.model.dao.IClienteDao;
+import mx.ed.utez.api_supermercado.service.ICarritoService;
+import mx.ed.utez.api_supermercado.service.IClienteService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 @RestController
 @RequestMapping("/caja")
 public class CajaRestController {
 
-    private Queue<String> filaClientes = new LinkedList<>();
+    @Autowired
+    private IClienteDao clienteDao;
 
-    @PostMapping("/agregar")
-    public ResponseEntity<String> agregarCliente(@RequestBody String cliente) {
-        filaClientes.add(cliente);
-        return ResponseEntity.ok("Cliente agregado a la fila.");
-    }
+    @Autowired
+    private IClienteService clienteService;
 
-    @GetMapping("/atender")
-    public ResponseEntity<String> atenderCliente() {
-        String cliente = filaClientes.poll();
-        if (cliente == null) {
-            return ResponseEntity.ok("No hay clientes en la fila.");
-        }
-        return ResponseEntity.ok("Atendiendo al cliente: " + cliente);
-    }
+    @Autowired
+    private ICarritoDao carritoDao;
 
-    @GetMapping("/obtenerFila")
-    public ResponseEntity<Queue<String>> obtenerFila() {
-        return ResponseEntity.ok(filaClientes);
-    }
+    @Autowired
+    private ICarritoService carritoService;
+
+    private final Queue<Cliente> filaClientes = new LinkedList<>();
+
+
 }
