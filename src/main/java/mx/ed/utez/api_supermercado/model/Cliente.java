@@ -47,7 +47,7 @@ public class Cliente {
 
     @Override
     public boolean equals(Object o) {
-        // Verifica si el objeto actual es el mismo que el objeto pasado como parámetro
+        // Verifica si el objeto actual es el mismo que los pasados como parámetro
         if (this == o) return true;
         // Verifica si el objeto pasado es nulo o si no pertenece a la misma clase
         if (o == null || getClass() != o.getClass()) return false;
@@ -57,6 +57,7 @@ public class Cliente {
         // Esto permite manejar posibles valores nulos del atributo 'id' sin errores de NullPointerException
         return Objects.equals(id, cliente.id);
     }
+
 
     @Override
     public int hashCode() {
