@@ -38,6 +38,7 @@ public class CustomQueue<T> {
 
     // Getters and Setters
     public Queue<T> getQueue() {
-        return this.queue;
+        return queue;
     }
-    }
+
+}

@@ -36,31 +36,20 @@ public class CajaRestController {
     public ResponseEntity<?> agregarCliente(@RequestBody Map<String, Object> datos) {
         try {
             // Validar que los datos contengan las claves necesarias
-            if (!datos.containsKey("clienteId") || !datos.containsKey("carritoId")) {
+            if (!datos.containsKey("clienteId")) {
                 return ResponseEntity.badRequest().body("Faltan clienteId o carritoId en la solicitud");
             }
 
             // Obtener valores de los datos
             Long clienteId = Long.valueOf(datos.get("clienteId").toString());
-            Long carritoId = Long.valueOf(datos.get("carritoId").toString());
 
             // Buscar cliente y carrito
             Cliente cliente = clienteDao.findById(clienteId)
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-            CarritoProducto carrito = carritoDao.findById(carritoId)
-                    .orElseThrow(() -> new RuntimeException("Carrito no encontrado"));
-
-            // Asociar carrito al cliente
-            carrito.setCliente(cliente);
-            if (cliente.getCarrito() == null) {
-                cliente.setCarrito(new ArrayList<>());
-            }
-            cliente.getCarrito().add(carrito);
 
             // Guardar cliente y carrito en la base de datos
             clienteDao.save(cliente);
-            carritoDao.save(carrito);
 
             // Validar que el cliente no esté ya en la fila
             if (!filaClientes.getQueue().contains(cliente)) {
