@@ -89,9 +89,8 @@ public class CajaRestController {
         }
     }
 
-    // Método para ver la fila de clientes
     @GetMapping("/obtenerFila")
-    public ResponseEntity<Queue<Cliente>> obtenerFila() {
-        return ResponseEntity.ok(filaClientes.getQueue());
+    public ResponseEntity<CustomQueue<Cliente>> obtenerFila() {
+        return ResponseEntity.ok(filaClientes);
     }
 }
