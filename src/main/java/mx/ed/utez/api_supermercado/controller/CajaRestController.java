@@ -75,6 +75,17 @@ public class CajaRestController {
         }
     }
 
+    //Metodo para atender a un cliente en la cola
+    @GetMapping("/atender")
+    public ResponseEntity<?> atenderCliente() {
+        Cliente cliente = filaClientes.poll();
+        if (cliente == null) {
+            System.out.println("No hay clientes en la fila para atender.");
+            return ResponseEntity.noContent().build();
+        }
+        System.out.println("Cliente atendido: " + cliente.getId());
+        return ResponseEntity.ok(cliente);
+    }
 
 
 }
